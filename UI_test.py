@@ -92,7 +92,7 @@ st.markdown(
 # Streamlit UI
 st.title("📊 Project Management Dashboard")
 
-
+st.markdown("<br>", unsafe_allow_html=True)
 
 # Model and Project selection in the same row
 selection_col1, selection_col2 = st.columns(2)
@@ -169,6 +169,9 @@ if selected_excel_file:
     else:
         st.error("No Projects data available.")
 # Cards at the top for KPIs
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 metrics_col1, metrics_col2 = st.columns(2)
 with metrics_col1:
     num_projects = len(dataframes.get("Projects", [])) if 'dataframes' in locals() else 0
