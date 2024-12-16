@@ -31,9 +31,12 @@ sheet_names = {
     "Stakeholders_Details": "Stakeholders_Details"
 }
 
-# Function to clean empty rows from DataFrame
+# Function to clean empty rows and rows with specific placeholders
 def clean_empty_rows(df):
-    return df.dropna(how='all').replace(r'^\s*$', pd.NA, regex=True).dropna(how='all')
+    return (df.dropna(how='all')
+              .replace(r'^\s*$', pd.NA, regex=True)
+              .dropna(how='all')
+              .loc[~df.apply(lambda row: row.astype(str).str.contains('------------------------------------')).any(axis=1)])
 
 # Load Generated Resources Data
 resources_file = "Generated_Resources_Data.csv"
@@ -42,7 +45,7 @@ if os.path.exists(resources_file):
     resources_df = pd.read_csv(resources_file)
     resources_df = clean_empty_rows(resources_df)
 
-
+st.write("### Select the Model")
 excel_files = get_excel_files(excel_file_directory)
 
 # Custom CSS for styling tables, cards, text wrapping, and layout adjustments
@@ -92,12 +95,24 @@ st.markdown(
 # Streamlit UI
 st.title("📊 Project Management Dashboard")
 
-st.markdown("<br>", unsafe_allow_html=True)
+# Cards at the top for KPIs
+metrics_col1, metrics_col2 = st.columns(2)
+with metrics_col1:
+    num_projects = len(dataframes.get("Projects", [])) if 'dataframes' in locals() else 0
+    st.markdown(f"""
+        <h4 class='card'>Number of Projects<br><br>
+        <span class='metric-value'>{num_projects}</span></h4>
+    """, unsafe_allow_html=True)
+with metrics_col2:
+    num_resources = len(resources_df) if resources_df is not None else 0
+    st.markdown(f"""
+        <h4 class='card'>Number of Resources<br><br>
+        <span class='metric-value'>{num_resources}</span></h4>
+    """, unsafe_allow_html=True)
 
 # Model and Project selection in the same row
 selection_col1, selection_col2 = st.columns(2)
 with selection_col1:
-    st.write("### Select the Model")
     selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
 
 if selected_excel_file:
@@ -108,12 +123,11 @@ if selected_excel_file:
     for sheet, sheet_name in sheet_names.items():
         try:
             df = pd.read_excel(excel_file_path, sheet_name=sheet_name)
-            dataframes[sheet] = clean_empty_rows(df)  # Remove empty rows and whitespace-only rows
+            dataframes[sheet] = clean_empty_rows(df)  # Remove empty rows and rows with placeholder lines
         except Exception as e:
             st.error(f"Error reading sheet {sheet_name}: {e}")
 
     with selection_col2:
-        st.write("### Select the Project")
         project_df = dataframes.get("Projects", pd.DataFrame())
         project_names = project_df["Project Name"].unique() if not project_df.empty else []
         selected_project = st.selectbox("Choose a project:", project_names, key="project_filter")
@@ -164,24 +178,7 @@ if selected_excel_file:
 
         # New row: Generated Resources Data Table
         if resources_df is not None:
-            st.write("### Generated Resources Data")
+            st.write("### Resources Data")
             st.dataframe(resources_df, use_container_width=True, height=400)
     else:
         st.error("No Projects data available.")
-# Cards at the top for KPIs
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-metrics_col1, metrics_col2 = st.columns(2)
-with metrics_col1:
-    num_projects = len(dataframes.get("Projects", [])) if 'dataframes' in locals() else 0
-    st.markdown(f"""
-        <h4 class='card'>Number of Projects<br><br>
-        <span class='metric-value'>{num_projects}</span></h4>
-    """, unsafe_allow_html=True)
-with metrics_col2:
-    num_resources = len(resources_df) if resources_df is not None else 0
-    st.markdown(f"""
-        <h4 class='card'>Number of Resources<br><br>
-        <span class='metric-value'>{num_resources}</span></h4>
-    """, unsafe_allow_html=True)
