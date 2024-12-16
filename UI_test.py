@@ -35,17 +35,16 @@ sheet_names = {
 def clean_empty_rows(df):
     return df.dropna(how='all').replace(r'^\s*$', pd.NA, regex=True).dropna(how='all')
 
-# Dropdown to select an Excel file
-st.write("### Select an Excel File")
-excel_files = get_excel_files(excel_file_directory)
-selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
-
 # Load Generated Resources Data
 resources_file = "Generated_Resources_Data.csv"
 resources_df = None
 if os.path.exists(resources_file):
     resources_df = pd.read_csv(resources_file)
     resources_df = clean_empty_rows(resources_df)
+
+st.write("### Select the Model")
+excel_files = get_excel_files(excel_file_directory)
+selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
 
 if selected_excel_file:
     # Load data from the selected file
