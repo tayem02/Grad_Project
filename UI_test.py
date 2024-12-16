@@ -1,4 +1,3 @@
-
 import os
 import fitz  # PyMuPDF for reading PDFs
 import pandas as pd
@@ -18,8 +17,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"  # Sidebar starts expanded
 )
 
+# Function to get a list of Excel files in the app's directory
+def get_excel_files(directory):
+    return [f for f in os.listdir(directory) if f.endswith('.xlsx')]
+
 # Paths and sheet names
-excel_file_path = "https://raw.githubusercontent.com/tayem02/Grad_Project/main/Results_(3.5_gpt)_16_Dec_2024.xlsx"
+excel_file_directory = "./"  # Directory containing the Excel files
 sheet_names = {
     "Projects": "Projects",
     "Goals": "Goals",
@@ -28,101 +31,108 @@ sheet_names = {
     "Stakeholders_Details": "Stakeholders_Details"
 }
 
-# Read data from the Excel file
-dataframes = {}
-for sheet, sheet_name in sheet_names.items():
-    try:
-        dataframes[sheet] = pd.read_excel(excel_file_path, sheet_name=sheet_name)
-    except Exception as e:
-        st.error(f"Error reading sheet {sheet_name}: {e}")
+# Dropdown to select an Excel file
+st.write("### Select an Excel File")
+excel_files = get_excel_files(excel_file_directory)
+selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
 
-# Custom CSS for styling tables, text wrapping, and layout adjustments
-st.markdown(
-    """
-<style>
-    .centered {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-    }
-    .dataframe-container {
-        overflow-x: auto;
-        width: 100%;
-    }
-    .dataframe th, .dataframe td {
-        white-space: pre-wrap !important; /* Ensure text wraps properly */
-        word-wrap: break-word;
-        text-align: left;
-    }
-    .block-container {
-        padding-top: 0rem !important; /* Remove white space at the top */
-    }
-</style>
-""",
-    unsafe_allow_html=True
-)
+if selected_excel_file:
+    # Load data from the selected file
+    dataframes = {}
+    excel_file_path = os.path.join(excel_file_directory, selected_excel_file)
+    
+    for sheet, sheet_name in sheet_names.items():
+        try:
+            dataframes[sheet] = pd.read_excel(excel_file_path, sheet_name=sheet_name)
+        except Exception as e:
+            st.error(f"Error reading sheet {sheet_name}: {e}")
 
-# Streamlit UI
-# Move project filter to the top
-st.title("📊 Project Management Dashboard")
+    # Custom CSS for styling tables, text wrapping, and layout adjustments
+    st.markdown(
+        """
+    <style>
+        .centered {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .dataframe-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+        .dataframe th, .dataframe td {
+            white-space: pre-wrap !important; /* Ensure text wraps properly */
+            word-wrap: break-word;
+            text-align: left;
+        }
+        .block-container {
+            padding-top: 0rem !important; /* Remove white space at the top */
+        }
+    </style>
+    """,
+        unsafe_allow_html=True
+    )
 
-if "Projects" in dataframes:
-    project_df = dataframes["Projects"]
-    project_names = project_df["Project Name"].unique()
+    # Streamlit UI
+    st.title("📊 Project Management Dashboard")
 
-    # Filter at the top
-    st.write("### Select a Project")
-    selected_project = st.selectbox("Choose a project:", project_names, key="top_project_filter")
+    if "Projects" in dataframes:
+        project_df = dataframes["Projects"]
+        project_names = project_df["Project Name"].unique()
 
-    # Filter DataFrames based on selected project
-    selected_project_data = project_df[project_df["Project Name"] == selected_project]
+        # Filter by project name
+        st.write("### Select a Project")
+        selected_project = st.selectbox("Choose a project:", project_names, key="project_filter")
 
-    # Layout: First row - Project Details and Tasks in two columns
-    if "Tasks" in dataframes:
-        tasks_df = dataframes["Tasks"]
-        filtered_tasks = tasks_df[tasks_df["Project ID"].isin(selected_project_data["Project ID"])]
+        # Filter DataFrames based on selected project
+        selected_project_data = project_df[project_df["Project Name"] == selected_project]
 
-        col1, col2 = st.columns(2)
+        # Layout: First row - Project Details and Tasks in two columns
+        if "Tasks" in dataframes:
+            tasks_df = dataframes["Tasks"]
+            filtered_tasks = tasks_df[tasks_df["Project ID"].isin(selected_project_data["Project ID"])]
 
-        with col1:
-            st.write("### Project Details")
-            st.dataframe(selected_project_data.transpose(), height=400)
+            col1, col2 = st.columns(2)
 
-        with col2:
-            st.write("### Tasks Details")
-            st.dataframe(filtered_tasks, height=400)
+            with col1:
+                st.write("### Project Details")
+                st.dataframe(selected_project_data.transpose(), height=400)
 
-    # Layout: Second row - Goals, Stakeholders Details, and Stakeholders Projects in three columns
-    if "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes and "Goals" in dataframes:
-        stakeholders_projects_df = dataframes["Stakeholders_Projects"]
-        stakeholders_details_df = dataframes["Stakeholders_Details"]
-        goals_df = dataframes["Goals"]
+            with col2:
+                st.write("### Tasks Details")
+                st.dataframe(filtered_tasks, height=400)
 
-        project_ids = selected_project_data["Project ID"].values
+        # Layout: Second row - Goals, Stakeholders Details, and Stakeholders Projects in three columns
+        if "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes and "Goals" in dataframes:
+            stakeholders_projects_df = dataframes["Stakeholders_Projects"]
+            stakeholders_details_df = dataframes["Stakeholders_Details"]
+            goals_df = dataframes["Goals"]
 
-        # Filter Goals
-        filtered_goals = goals_df[goals_df["Project ID"].isin(project_ids)]
+            project_ids = selected_project_data["Project ID"].values
 
-        # Filter Stakeholders Projects
-        linked_stakeholders = stakeholders_projects_df[stakeholders_projects_df["Project ID"].isin(project_ids)]
-        stakeholder_ids = linked_stakeholders["Stakeholder ID"].values
+            # Filter Goals
+            filtered_goals = goals_df[goals_df["Project ID"].isin(project_ids)]
 
-        # Filter Stakeholders Details
-        filtered_stakeholders_details = stakeholders_details_df[stakeholders_details_df["ID"].isin(stakeholder_ids)]
+            # Filter Stakeholders Projects
+            linked_stakeholders = stakeholders_projects_df[stakeholders_projects_df["Project ID"].isin(project_ids)]
+            stakeholder_ids = linked_stakeholders["Stakeholder ID"].values
 
-        col1, col2, col3 = st.columns(3)
+            # Filter Stakeholders Details
+            filtered_stakeholders_details = stakeholders_details_df[stakeholders_details_df["ID"].isin(stakeholder_ids)]
 
-        with col1:
-            st.write("### Goals")
-            st.dataframe(filtered_goals, height=400)
+            col1, col2, col3 = st.columns(3)
 
-        with col2:
-            st.write("### Stakeholders Details")
-            st.dataframe(filtered_stakeholders_details, height=400)
+            with col1:
+                st.write("### Goals")
+                st.dataframe(filtered_goals, height=400)
 
-        with col3:
-            st.write("### Stakeholders Projects")
-            st.dataframe(linked_stakeholders, height=400)
-else:
-    st.error("No Projects data available.")
+            with col2:
+                st.write("### Stakeholders Details")
+                st.dataframe(filtered_stakeholders_details, height=400)
+
+            with col3:
+                st.write("### Stakeholders Projects")
+                st.dataframe(linked_stakeholders, height=400)
+    else:
+        st.error("No Projects data available.")
