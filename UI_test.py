@@ -59,7 +59,7 @@ if selected_excel_file:
         except Exception as e:
             st.error(f"Error reading sheet {sheet_name}: {e}")
 
-    # Custom CSS for styling tables, text wrapping, and layout adjustments
+    # Custom CSS for styling tables, cards, text wrapping, and layout adjustments
     st.markdown(
         """
     <style>
@@ -81,6 +81,23 @@ if selected_excel_file:
         div.stDataFrame {
             width: 100% !important;
         }
+        .card {
+            background-color: #000000;
+            color: #FFFFFF;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            border: 2px solid #ddd;
+            text-align: center;
+            height: auto;
+            overflow: hidden;
+        }
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
     </style>
     """,
         unsafe_allow_html=True
@@ -93,12 +110,16 @@ if selected_excel_file:
     col1, col2 = st.columns(2)
     with col1:
         num_projects = len(dataframes.get("Projects", []))
-        st.subheader("Number of Projects")
-        st.info(f"{num_projects}")
+        st.markdown(f"""
+            <h4 class='card'>Number of Projects<br><br>
+            <span class='metric-value'>{num_projects}</span></h4>
+        """, unsafe_allow_html=True)
     with col2:
         num_resources = len(resources_df) if resources_df is not None else 0
-        st.subheader("Number of Resources")
-        st.info(f"{num_resources}")
+        st.markdown(f"""
+            <h4 class='card'>Number of Resources<br><br>
+            <span class='metric-value'>{num_resources}</span></h4>
+        """, unsafe_allow_html=True)
 
     if "Projects" in dataframes:
         project_df = dataframes["Projects"]
@@ -162,7 +183,7 @@ if selected_excel_file:
 
         # New row: Generated Resources Data Table
         if resources_df is not None:
-            st.write("### Resources Data")
+            st.write("### Generated Resources Data")
             st.dataframe(resources_df, use_container_width=True, height=400)
     else:
         st.error("No Projects data available.")
