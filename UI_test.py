@@ -36,7 +36,7 @@ def clean_empty_rows(df):
     return (df.dropna(how='all')
               .replace(r'^\s*$', pd.NA, regex=True)
               .dropna(how='all')
-              .loc[~df.apply(lambda row: row.astype(str).str.contains('------------------------------------')).any(axis=1)])
+              .loc[~df.apply(lambda row: row.astype(str).str.contains('--------')).any(axis=1)])
 
 # Load Generated Resources Data
 resources_file = "Generated_Resources_Data.csv"
