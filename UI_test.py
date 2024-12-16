@@ -40,6 +40,13 @@ st.write("### Select an Excel File")
 excel_files = get_excel_files(excel_file_directory)
 selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
 
+# Load Generated Resources Data
+resources_file = "Generated_Resources_Data.csv"
+resources_df = None
+if os.path.exists(resources_file):
+    resources_df = pd.read_csv(resources_file)
+    resources_df = clean_empty_rows(resources_df)
+
 if selected_excel_file:
     # Load data from the selected file
     dataframes = {}
@@ -81,6 +88,17 @@ if selected_excel_file:
 
     # Streamlit UI
     st.title("📊 Project Management Dashboard")
+
+    # Cards at the top for KPIs
+    col1, col2 = st.columns(2)
+    with col1:
+        num_projects = len(dataframes.get("Projects", []))
+        st.subheader("Number of Projects")
+        st.info(f"{num_projects}")
+    with col2:
+        num_resources = len(resources_df) if resources_df is not None else 0
+        st.subheader("Number of Resources")
+        st.info(f"{num_resources}")
 
     if "Projects" in dataframes:
         project_df = dataframes["Projects"]
@@ -141,6 +159,10 @@ if selected_excel_file:
             with col2:
                 st.write("### Stakeholders Projects")
                 st.dataframe(linked_stakeholders, use_container_width=True, height=400)
+
+        # New row: Generated Resources Data Table
+        if resources_df is not None:
+            st.write("### Resources Data")
+            st.dataframe(resources_df, use_container_width=True, height=400)
     else:
         st.error("No Projects data available.")
-
