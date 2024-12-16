@@ -45,9 +45,6 @@ if os.path.exists(resources_file):
     resources_df = pd.read_csv(resources_file)
     resources_df = clean_empty_rows(resources_df)
 
-st.write("### Select the Model")
-excel_files = get_excel_files(excel_file_directory)
-
 # Custom CSS for styling tables, cards, text wrapping, and layout adjustments
 st.markdown(
     """
@@ -95,28 +92,10 @@ st.markdown(
 # Streamlit UI
 st.title("📊 Project Management Dashboard")
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Cards at the top for KPIs
-metrics_col1, metrics_col2 = st.columns(2)
-with metrics_col1:
-    num_projects = len(dataframes.get("Projects", [])) if 'dataframes' in locals() else 0
-    st.markdown(f"""
-        <h4 class='card'>Number of Projects<br><br>
-        <span class='metric-value'>{num_projects}</span></h4>
-    """, unsafe_allow_html=True)
-with metrics_col2:
-    num_resources = len(resources_df) if resources_df is not None else 0
-    st.markdown(f"""
-        <h4 class='card'>Number of Resources<br><br>
-        <span class='metric-value'>{num_resources}</span></h4>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
 # Model and Project selection in the same row
 selection_col1, selection_col2 = st.columns(2)
 with selection_col1:
+    excel_files = get_excel_files(excel_file_directory)
     selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
 
 if selected_excel_file:
@@ -135,6 +114,21 @@ if selected_excel_file:
         project_df = dataframes.get("Projects", pd.DataFrame())
         project_names = project_df["Project Name"].unique() if not project_df.empty else []
         selected_project = st.selectbox("Choose a project:", project_names, key="project_filter")
+
+    # Cards for KPIs after selection
+    metrics_col1, metrics_col2 = st.columns(2)
+    with metrics_col1:
+        num_projects = len(dataframes.get("Projects", []))
+        st.markdown(f"""
+            <h4 class='card'>Number of Projects<br><br>
+            <span class='metric-value'>{num_projects}</span></h4>
+        """, unsafe_allow_html=True)
+    with metrics_col2:
+        num_resources = len(resources_df) if resources_df is not None else 0
+        st.markdown(f"""
+            <h4 class='card'>Number of Resources<br><br>
+            <span class='metric-value'>{num_resources}</span></h4>
+        """, unsafe_allow_html=True)
 
     if "Projects" in dataframes:
         selected_project_data = project_df[project_df["Project Name"] == selected_project]
