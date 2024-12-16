@@ -95,6 +95,8 @@ st.markdown(
 # Streamlit UI
 st.title("📊 Project Management Dashboard")
 
+st.markdown("<br>", unsafe_allow_html=True)
+
 # Cards at the top for KPIs
 metrics_col1, metrics_col2 = st.columns(2)
 with metrics_col1:
@@ -109,6 +111,8 @@ with metrics_col2:
         <h4 class='card'>Number of Resources<br><br>
         <span class='metric-value'>{num_resources}</span></h4>
     """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 # Model and Project selection in the same row
 selection_col1, selection_col2 = st.columns(2)
