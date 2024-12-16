@@ -44,7 +44,73 @@ if os.path.exists(resources_file):
 
 st.write("### Select the Model")
 excel_files = get_excel_files(excel_file_directory)
-selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
+
+# Custom CSS for styling tables, cards, text wrapping, and layout adjustments
+st.markdown(
+    """
+<style>
+    .centered {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .dataframe-container {
+        overflow-x: auto;
+        width: 100%;
+    }
+    .dataframe th, .dataframe td {
+        white-space: pre-wrap !important; /* Ensure text wraps properly */
+        word-wrap: break-word !important;
+        text-align: left;
+    }
+    div.stDataFrame {
+        width: 100% !important;
+    }
+    .card {
+        background-color: #000000;
+        color: #FFFFFF;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 10px;
+        border: 2px solid #ddd;
+        text-align: center;
+        height: auto;
+        overflow: hidden;
+    }
+    .metric-value {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+</style>
+""",
+    unsafe_allow_html=True
+)
+
+# Streamlit UI
+st.title("📊 Project Management Dashboard")
+
+# Cards at the top for KPIs
+metrics_col1, metrics_col2 = st.columns(2)
+with metrics_col1:
+    num_projects = len(dataframes.get("Projects", [])) if 'dataframes' in locals() else 0
+    st.markdown(f"""
+        <h4 class='card'>Number of Projects<br><br>
+        <span class='metric-value'>{num_projects}</span></h4>
+    """, unsafe_allow_html=True)
+with metrics_col2:
+    num_resources = len(resources_df) if resources_df is not None else 0
+    st.markdown(f"""
+        <h4 class='card'>Number of Resources<br><br>
+        <span class='metric-value'>{num_resources}</span></h4>
+    """, unsafe_allow_html=True)
+
+# Model and Project selection in the same row
+selection_col1, selection_col2 = st.columns(2)
+with selection_col1:
+    selected_excel_file = st.selectbox("Choose an Excel file:", excel_files, key="excel_file_selector")
 
 if selected_excel_file:
     # Load data from the selected file
@@ -58,77 +124,12 @@ if selected_excel_file:
         except Exception as e:
             st.error(f"Error reading sheet {sheet_name}: {e}")
 
-    # Custom CSS for styling tables, cards, text wrapping, and layout adjustments
-    st.markdown(
-        """
-    <style>
-        .centered {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .dataframe-container {
-            overflow-x: auto;
-            width: 100%;
-        }
-        .dataframe th, .dataframe td {
-            white-space: pre-wrap !important; /* Ensure text wraps properly */
-            word-wrap: break-word !important;
-            text-align: left;
-        }
-        div.stDataFrame {
-            width: 100% !important;
-        }
-        .card {
-            background-color: #000000;
-            color: #FFFFFF;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin: 10px;
-            border: 2px solid #ddd;
-            text-align: center;
-            height: auto;
-            overflow: hidden;
-        }
-        .metric-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-    </style>
-    """,
-        unsafe_allow_html=True
-    )
-
-    # Streamlit UI
-    st.title("📊 Project Management Dashboard")
-
-    # Cards at the top for KPIs
-    col1, col2 = st.columns(2)
-    with col1:
-        num_projects = len(dataframes.get("Projects", []))
-        st.markdown(f"""
-            <h4 class='card'>Number of Projects<br><br>
-            <span class='metric-value'>{num_projects}</span></h4>
-        """, unsafe_allow_html=True)
-    with col2:
-        num_resources = len(resources_df) if resources_df is not None else 0
-        st.markdown(f"""
-            <h4 class='card'>Number of Resources<br><br>
-            <span class='metric-value'>{num_resources}</span></h4>
-        """, unsafe_allow_html=True)
-
-    if "Projects" in dataframes:
-        project_df = dataframes["Projects"]
-        project_names = project_df["Project Name"].unique()
-
-        # Filter by project name
-        st.write("### Select a Project")
+    with selection_col2:
+        project_df = dataframes.get("Projects", pd.DataFrame())
+        project_names = project_df["Project Name"].unique() if not project_df.empty else []
         selected_project = st.selectbox("Choose a project:", project_names, key="project_filter")
 
-        # Filter DataFrames based on selected project
+    if "Projects" in dataframes:
         selected_project_data = project_df[project_df["Project Name"] == selected_project]
 
         # Layout: First row - Project Details and Tasks in two columns
@@ -149,12 +150,8 @@ if selected_excel_file:
         # Layout: Second row - Goals in a single expanded row
         if "Goals" in dataframes:
             goals_df = dataframes["Goals"]
-
             project_ids = selected_project_data["Project ID"].values
-
-            # Filter Goals
             filtered_goals = goals_df[goals_df["Project ID"].isin(project_ids)]
-
             st.write("### Goals")
             st.dataframe(filtered_goals, use_container_width=True, height=400)
 
@@ -162,12 +159,8 @@ if selected_excel_file:
         if "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes:
             stakeholders_projects_df = dataframes["Stakeholders_Projects"]
             stakeholders_details_df = dataframes["Stakeholders_Details"]
-
-            # Filter Stakeholders Projects
             linked_stakeholders = stakeholders_projects_df[stakeholders_projects_df["Project ID"].isin(project_ids)]
             stakeholder_ids = linked_stakeholders["Stakeholder ID"].values
-
-            # Filter Stakeholders Details
             filtered_stakeholders_details = stakeholders_details_df[stakeholders_details_df["ID"].isin(stakeholder_ids)]
 
             col1, col2 = st.columns([1, 1])
