@@ -43,7 +43,8 @@ if selected_excel_file:
     
     for sheet, sheet_name in sheet_names.items():
         try:
-            dataframes[sheet] = pd.read_excel(excel_file_path, sheet_name=sheet_name)
+            df = pd.read_excel(excel_file_path, sheet_name=sheet_name)
+            dataframes[sheet] = df.dropna(how='all')  # Remove empty rows
         except Exception as e:
             st.error(f"Error reading sheet {sheet_name}: {e}")
 
