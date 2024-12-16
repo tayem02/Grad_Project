@@ -1,3 +1,4 @@
+
 import os
 import fitz  # PyMuPDF for reading PDFs
 import pandas as pd
@@ -35,7 +36,7 @@ for sheet, sheet_name in sheet_names.items():
     except Exception as e:
         st.error(f"Error reading sheet {sheet_name}: {e}")
 
-# Custom CSS for styling tables and removing extra whitespace
+# Custom CSS for styling tables, text wrapping, and layout adjustments
 st.markdown(
     """
 <style>
@@ -63,49 +64,65 @@ st.markdown(
 )
 
 # Streamlit UI
-# Centered container for all content
-st.markdown('<div class="centered">', unsafe_allow_html=True)
-
+# Move project filter to the top
 st.title("📊 Project Management Dashboard")
 
-# Sidebar for selecting a project
-st.sidebar.header("Select a Project")
-
-if "Projects" in dataframes and "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes:
+if "Projects" in dataframes:
     project_df = dataframes["Projects"]
-    stakeholders_projects_df = dataframes["Stakeholders_Projects"]
-    stakeholders_details_df = dataframes["Stakeholders_Details"]
-
     project_names = project_df["Project Name"].unique()
-    selected_project = st.sidebar.selectbox("Choose a project:", project_names)
+
+    # Filter at the top
+    st.write("### Select a Project")
+    selected_project = st.selectbox("Choose a project:", project_names, key="top_project_filter")
 
     # Filter DataFrames based on selected project
     selected_project_data = project_df[project_df["Project Name"] == selected_project]
 
-    # Display Project Details (Transposed)
-    st.write("### Project Details")
-    with st.container():
-        st.dataframe(selected_project_data.transpose())
+    # Layout: First row - Project Details and Tasks in two columns
+    if "Tasks" in dataframes:
+        tasks_df = dataframes["Tasks"]
+        filtered_tasks = tasks_df[tasks_df["Project ID"].isin(selected_project_data["Project ID"])]
 
-    # Filter and display Stakeholders Details linked to the project
-    project_ids = selected_project_data["Project ID"].values
-    linked_stakeholders = stakeholders_projects_df[stakeholders_projects_df["Project ID"].isin(project_ids)]
-    stakeholder_ids = linked_stakeholders["Stakeholder ID"].values
-    filtered_stakeholders_details = stakeholders_details_df[stakeholders_details_df["ID"].isin(stakeholder_ids)]
+        col1, col2 = st.columns(2)
 
-    st.write("### Stakeholders Details")
-    with st.container():
-        st.dataframe(filtered_stakeholders_details)
+        with col1:
+            st.write("### Project Details")
+            st.dataframe(selected_project_data.transpose(), height=400)
 
-    # Display data from other sheets
-    for sheet, df in dataframes.items():
-        if sheet not in ["Projects", "Stakeholders_Projects", "Stakeholders_Details"]:
-            st.write(f"### {sheet.replace('_', ' ')}")
-            filtered_df = df[df["Project ID"].isin(selected_project_data["Project ID"])]
-            with st.container():
-                st.dataframe(filtered_df)
+        with col2:
+            st.write("### Tasks Details")
+            st.dataframe(filtered_tasks, height=400)
+
+    # Layout: Second row - Goals, Stakeholders Details, and Stakeholders Projects in three columns
+    if "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes and "Goals" in dataframes:
+        stakeholders_projects_df = dataframes["Stakeholders_Projects"]
+        stakeholders_details_df = dataframes["Stakeholders_Details"]
+        goals_df = dataframes["Goals"]
+
+        project_ids = selected_project_data["Project ID"].values
+
+        # Filter Goals
+        filtered_goals = goals_df[goals_df["Project ID"].isin(project_ids)]
+
+        # Filter Stakeholders Projects
+        linked_stakeholders = stakeholders_projects_df[stakeholders_projects_df["Project ID"].isin(project_ids)]
+        stakeholder_ids = linked_stakeholders["Stakeholder ID"].values
+
+        # Filter Stakeholders Details
+        filtered_stakeholders_details = stakeholders_details_df[stakeholders_details_df["ID"].isin(stakeholder_ids)]
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.write("### Goals")
+            st.dataframe(filtered_goals, height=400)
+
+        with col2:
+            st.write("### Stakeholders Details")
+            st.dataframe(filtered_stakeholders_details, height=400)
+
+        with col3:
+            st.write("### Stakeholders Projects")
+            st.dataframe(linked_stakeholders, height=400)
 else:
-    st.error("No Projects or Stakeholders data available.")
-
-# Close the centered container
-st.markdown('</div>', unsafe_allow_html=True)
+    st.error("No Projects data available.")
