@@ -103,16 +103,22 @@ if selected_excel_file:
                 st.write("### Tasks Details")
                 st.dataframe(filtered_tasks, height=400)
 
-        # Layout: Second row - Goals, Stakeholders Details, and Stakeholders Projects in three columns
-        if "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes and "Goals" in dataframes:
-            stakeholders_projects_df = dataframes["Stakeholders_Projects"]
-            stakeholders_details_df = dataframes["Stakeholders_Details"]
+        # Layout: Second row - Goals in a single row
+        if "Goals" in dataframes:
             goals_df = dataframes["Goals"]
 
             project_ids = selected_project_data["Project ID"].values
 
             # Filter Goals
             filtered_goals = goals_df[goals_df["Project ID"].isin(project_ids)]
+
+            st.write("### Goals")
+            st.dataframe(filtered_goals, use_container_width=True, height=400)
+
+        # Layout: Third row - Stakeholders Details and Stakeholders Projects in two columns
+        if "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes:
+            stakeholders_projects_df = dataframes["Stakeholders_Projects"]
+            stakeholders_details_df = dataframes["Stakeholders_Details"]
 
             # Filter Stakeholders Projects
             linked_stakeholders = stakeholders_projects_df[stakeholders_projects_df["Project ID"].isin(project_ids)]
@@ -121,18 +127,14 @@ if selected_excel_file:
             # Filter Stakeholders Details
             filtered_stakeholders_details = stakeholders_details_df[stakeholders_details_df["ID"].isin(stakeholder_ids)]
 
-            col1, col2, col3 = st.columns(3)
+            col1, col2 = st.columns(2)
 
             with col1:
-                st.write("### Goals")
-                st.dataframe(filtered_goals, height=400)
+                st.write("### Stakeholders Details")
+                st.dataframe(filtered_stakeholders_details, use_container_width=True, height=400)
 
             with col2:
-                st.write("### Stakeholders Details")
-                st.dataframe(filtered_stakeholders_details, height=400)
-
-            with col3:
                 st.write("### Stakeholders Projects")
-                st.dataframe(linked_stakeholders, height=400)
+                st.dataframe(linked_stakeholders, use_container_width=True, height=400)
     else:
         st.error("No Projects data available.")
