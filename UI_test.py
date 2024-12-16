@@ -63,14 +63,11 @@ if selected_excel_file:
         }
         .dataframe th, .dataframe td {
             white-space: pre-wrap !important; /* Ensure text wraps properly */
-            word-wrap: break-word;
+            word-wrap: break-word !important;
             text-align: left;
         }
-        .stDataFrame > div > div {
-            width: 100% !important; /* Force DataFrame full-width */
-        }
-        .block-container {
-            padding-top: 0rem !important; /* Remove white space at the top */
+        div.stDataFrame {
+            width: 100% !important;
         }
     </style>
     """,
@@ -100,11 +97,11 @@ if selected_excel_file:
 
             with col1:
                 st.write("### Project Details")
-                st.dataframe(selected_project_data.transpose(), height=400)
+                st.dataframe(selected_project_data.transpose(), use_container_width=True, height=400)
 
             with col2:
                 st.write("### Tasks Details")
-                st.dataframe(filtered_tasks, height=400)
+                st.dataframe(filtered_tasks, use_container_width=True, height=400)
 
         # Layout: Second row - Goals in a single expanded row
         if "Goals" in dataframes:
