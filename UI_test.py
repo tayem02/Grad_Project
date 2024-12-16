@@ -113,6 +113,7 @@ if selected_excel_file:
             st.error(f"Error reading sheet {sheet_name}: {e}")
 
     with selection_col2:
+        st.write("### Select the Project")
         project_df = dataframes.get("Projects", pd.DataFrame())
         project_names = project_df["Project Name"].unique() if not project_df.empty else []
         selected_project = st.selectbox("Choose a project:", project_names, key="project_filter")
