@@ -115,7 +115,9 @@ if selected_excel_file:
         project_names = project_df["Project Name"].unique() if not project_df.empty else []
         selected_project = st.selectbox("Choose a project:", project_names, key="project_filter")
 
-    # Cards for KPIs after selection
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Cards for KPIs after selection
     metrics_col1, metrics_col2 = st.columns(2)
     with metrics_col1:
         num_projects = len(dataframes.get("Projects", []))
@@ -180,3 +182,5 @@ if selected_excel_file:
             st.dataframe(resources_df, use_container_width=True, height=400)
     else:
         st.error("No Projects data available.")
+
+st.markdown("<br>", unsafe_allow_html=True)
