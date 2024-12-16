@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # Paths and sheet names
-excel_file_path = "C:\\Graduation Project\\OpenAI_APIs\\Results_ModelName_16_Dec_2024.xlsx"
+excel_file_path = "https://github.com/tayem02/Grad_Project/blob/main/Results_(3.5_gpt)_16_Dec_2024.xlsx"
 sheet_names = {
     "Projects": "Projects",
     "Goals": "Goals",
