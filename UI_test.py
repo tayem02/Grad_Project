@@ -1,5 +1,5 @@
 import os
-#import fitz  # PyMuPDF for reading PDFs
+import fitz  # PyMuPDF for reading PDFs
 import pandas as pd
 import openai
 from datetime import datetime
