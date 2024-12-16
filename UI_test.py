@@ -31,6 +31,10 @@ sheet_names = {
     "Stakeholders_Details": "Stakeholders_Details"
 }
 
+# Function to clean empty rows from DataFrame
+def clean_empty_rows(df):
+    return df.dropna(how='all').replace(r'^\s*$', pd.NA, regex=True).dropna(how='all')
+
 # Dropdown to select an Excel file
 st.write("### Select an Excel File")
 excel_files = get_excel_files(excel_file_directory)
@@ -44,7 +48,7 @@ if selected_excel_file:
     for sheet, sheet_name in sheet_names.items():
         try:
             df = pd.read_excel(excel_file_path, sheet_name=sheet_name)
-            dataframes[sheet] = df.dropna(how='all')  # Remove empty rows
+            dataframes[sheet] = clean_empty_rows(df)  # Remove empty rows and whitespace-only rows
         except Exception as e:
             st.error(f"Error reading sheet {sheet_name}: {e}")
 
@@ -139,3 +143,4 @@ if selected_excel_file:
                 st.dataframe(linked_stakeholders, use_container_width=True, height=400)
     else:
         st.error("No Projects data available.")
+
