@@ -66,6 +66,9 @@ if selected_excel_file:
             word-wrap: break-word;
             text-align: left;
         }
+        .stDataFrame > div > div {
+            width: 100% !important; /* Force DataFrame full-width */
+        }
         .block-container {
             padding-top: 0rem !important; /* Remove white space at the top */
         }
@@ -103,7 +106,7 @@ if selected_excel_file:
                 st.write("### Tasks Details")
                 st.dataframe(filtered_tasks, height=400)
 
-        # Layout: Second row - Goals in a single row
+        # Layout: Second row - Goals in a single expanded row
         if "Goals" in dataframes:
             goals_df = dataframes["Goals"]
 
@@ -115,7 +118,7 @@ if selected_excel_file:
             st.write("### Goals")
             st.dataframe(filtered_goals, use_container_width=True, height=400)
 
-        # Layout: Third row - Stakeholders Details and Stakeholders Projects in two columns
+        # Layout: Third row - Stakeholders Details and Stakeholders Projects in expanded columns
         if "Stakeholders_Projects" in dataframes and "Stakeholders_Details" in dataframes:
             stakeholders_projects_df = dataframes["Stakeholders_Projects"]
             stakeholders_details_df = dataframes["Stakeholders_Details"]
@@ -127,7 +130,7 @@ if selected_excel_file:
             # Filter Stakeholders Details
             filtered_stakeholders_details = stakeholders_details_df[stakeholders_details_df["ID"].isin(stakeholder_ids)]
 
-            col1, col2 = st.columns(2)
+            col1, col2 = st.columns([1, 1])
 
             with col1:
                 st.write("### Stakeholders Details")
